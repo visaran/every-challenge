@@ -1,15 +1,35 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { uuid } from "uuidv4";
 import Board, { EDirection } from "./components/Board";
 import NewTaskInput from "./components/NewTaskInput";
 import { EBoard, ITask } from "./types/Task";
+import axios from "axios";
+
+interface IItem {
+  id: string;
+  title: string;
+  state: string;
+}
 
 export function ChallengeComponent() {
-  const [tasks, setTasks] = useState<ITask[]>([
-    { id: uuid(), name: "Mow the lawn", currentBoard: EBoard.Todo },
-    { id: uuid(), name: "Pull Weeds", currentBoard: EBoard.Progress },
-    { id: uuid(), name: "Rake the leaves", currentBoard: EBoard.Done },
-  ]);
+  const [tasks, setTasks] = useState<ITask[]>([]);
+
+  useEffect(() => {
+    async function fetchTasks() {
+      const { data } = await axios.get(
+        "https://api.github.com/repos/every-io/demo-issues/issues?state=all"
+      );
+
+      setTasks(
+        data.map((item: IItem) => ({
+          id: item.id,
+          name: item.title,
+          currentBoard: item.state === "closed" ? EBoard.Done : EBoard.Todo,
+        }))
+      );
+    }
+    fetchTasks();
+  }, []);
 
   function onAddTask(taskName: string) {
     setTasks([
@@ -53,6 +73,7 @@ export function ChallengeComponent() {
       >
         {boards.map((board) => (
           <Board
+            key={JSON.stringify(board)}
             title={board.title}
             tasks={filteredTasks(board.id)}
             onMoveTask={onMoveTask}
