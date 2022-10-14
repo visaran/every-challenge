@@ -31,6 +31,7 @@ export default function Board({ title, tasks, onMoveTask }: BoardProps) {
       <div>
         {tasks.map((task) => (
           <div
+            key={JSON.stringify(task)}
             style={{
               display: "flex",
               alignItems: "center",
